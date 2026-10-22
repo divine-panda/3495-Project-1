@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Enter Data Service</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+    <h2>You have been granted access to the service, welcome user <%=user.id%></h2>
+    <form action="/submit-height" method="post" enctype="application/x-www-form-urlencoded">
+        <label for="height">Enter height (in cm)</label>
+        <input type="number" name="height" id="height" required>
+        <br>
+        <button type="submit">Enter Data</button>
+    </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql_db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER:-user}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-data_collection}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db.sql:/docker-entrypoint-initdb.d/db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongo_db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      - DB_HOST=mysql_db
+      - DB_USER=${MYSQL_USER:-user}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - DB_NAME=${MYSQL_DATABASE:-data_collection}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+  enter_data:
+    build: ./enter_data
+    container_name: enter_data
+    restart: always
+    ports:
+      - "5002:5002"
+    environment:
+      - DB_HOST=mysql_db
+      - DB_USER=${MYSQL_USER:-user}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - DB_NAME=${MYSQL_DATABASE:-data_collection}
+      - DB_PORT=3306
+      - PORT=5002
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:5002/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  analytics_service:
+    build: ./analytics_service
+    container_name: analytics_service
+    restart: always
+    ports:
+      - "5003:5003"
+    environment:
+      - MYSQL_HOST=mysql_db
+      - MYSQL_USER=${MYSQL_USER:-user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DATABASE:-data_collection}
+      - MONGO_URI=mongodb://mongo_db:27017/
+      - PORT=5003
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5003/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  show_results:
+    build: ./show_results
+    container_name: show_results
+    restart: always
+    ports:
+      - "5004:5004"
+    environment:
+      - MONGO_URI=mongodb://mongo_db:27017/data_analytics
+      - AUTH_SERVICE_URL=http://auth_service:5001/protected
+      - PORT=5004
+      - ANALYTICS_SERVICE_URL=http://analytics_service:5003
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+      analytics_service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:5004/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mysql_data:
+  mongo_data:
+
+networks:
+  default:
+    driver: bridge

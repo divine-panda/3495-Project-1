@@ -1,0 +1,6 @@
+auth_service/venv
+analytics_service/venv
+enter_data/node_modules
+show_results/node_modules
+.git
+.env
