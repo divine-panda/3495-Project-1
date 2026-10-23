@@ -108,6 +108,15 @@ A `.dockerignore` file excludes unnecessary files from the build context, includ
 
 The Python and Node.js base images used by the project provide ARM64 and AMD64 variants. To distribute a single image that supports both architectures, build and publish it using Docker Buildx with `linux/amd64` and `linux/arm64` platforms.
 
+## Basic Visual Diagram
+
+![Application architecture](images/basic-diagram.png)
+
+**Description**
+Each component is running in its own Docker container. A user logs in through auth_service (:5001), which issues an access token. enter_data (:5002) and show_results (:5004) both require that token, and the “verify” arrows show this requirement: those two services can’t be accessed without a valid token from auth_service.
+
+Submitted data from enter_data is stored in MySQL, which auth_service also uses for user records. analytics_service (:5003) reads the data from MySQL, calculates the results, and saves them to MongoDB. show_results then reads from MongoDB and calls analytics_service to display the results to the user.
+
 ## Troubleshooting
 
 - **HTTP 401:** Check that the request includes a valid JWT and that the services use the same `JWT_SECRET_KEY`.
