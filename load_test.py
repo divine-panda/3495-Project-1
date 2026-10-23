@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 URL = "http://localhost:5001/login"
-TOTAL_REQUESTS = 200
+TOTAL_REQUESTS = 400
 WORKERS = 5
 
 username = os.environ.get("LOAD_TEST_USERNAME")

@@ -92,6 +92,11 @@ app.get("/", async (req, res) => {
 
     let token = req.cookies.access_token_cookie;
     // const AUTH_SERVICE_URL = "http://auth_service:5001";
+
+    if (!token) {
+        return res.status(401).json({ error: "Access token missing" });
+    }
+
     const host = req.headers.host;
 
     const AUTH_SERVICE_URL = `http://${host.replace(/:\d+$/, '')}:${5001}`;
@@ -101,7 +106,11 @@ app.get("/", async (req, res) => {
     `${process.env.ANALYTICS_SERVICE_URL || "http://analytics_service:5003"}/compute_analytics`;
     
     try {
-        const response = await axios.get(url, { headers: { Authorization: `Bearer ${req.cookies.user.token}` } } );
+        const response = await axios.get(url, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         console.log(response.data);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -123,11 +132,6 @@ app.get("/", async (req, res) => {
 
 
 app.get('/results', async (req, res) => {
-    //const verified = await verifyToken(req);
-    //if (!verified) {
-    //    return res.status(401).json({ error: 'Invalid token' });
-    //}
-    // Fetch the latest analytics data from the database
 
     const host = req.headers.host;
 

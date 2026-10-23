@@ -1,23 +1,29 @@
-FROM python:3.11.9
+# Stage 1: Build dependencies
+FROM python:3.11.9 AS build
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-# Upgrade pip --no-cache-dir is used to avoid caching the package index
-RUN pip install --no-cache-dir --upgrade pip
+RUN python -m venv /opt/venv
+RUN /opt/venv/bin/pip install --no-cache-dir --upgrade pip
+RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Create a virtual environment and install dependencies
-RUN python -m venv venv
-# Activate the virtual environment
-RUN . venv/bin/activate
-# Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Run application
+FROM python:3.11.9-slim AS runtime
+
+WORKDIR /app
+
+COPY --from=build /opt/venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH"
 
 COPY templates /app/templates
-EXPOSE 5001
+COPY static /app/static
+COPY app.py /app/app.py
 
-COPY . .
+EXPOSE 5001
 
 RUN useradd appuser
 USER appuser

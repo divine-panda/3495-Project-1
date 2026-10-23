@@ -3,9 +3,11 @@ import os
 import time
 import pymysql
 import pymongo
+from dotenv import load_dotenv
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager, get_jwt_identity, set_access_cookies
 from flask_cors import CORS
 
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -26,7 +28,7 @@ MYSQL_USER = os.getenv("MYSQL_USER", "user")
 MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "password")
 MYSQL_DB = os.getenv("MYSQL_DB", "data_collection")
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://mongo_db:27017/")
-AUTH_SERVICE_URL = os.getenv("MONGO_URI", "http://auth_service:5001")
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth_service:5001")
 
 # Connect to MySQL
 def get_mysql_connection():
