@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  permissions:
+    contents: read
+    packages: write
 
 jobs:
   build-and-health-check:
@@ -86,6 +89,34 @@ jobs:
       - name: Show service status
         if: always()
         run: docker compose ps
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and publish Docker images
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -e
+
+          REPO_LOWER=$(echo "$REPOSITORY" | tr '[:upper:]' '[:lower:]')
+          IMAGE_PREFIX="ghcr.io/$REPO_LOWER"
+
+          docker tag acit3495-auth-service:latest "$IMAGE_PREFIX/auth-service:latest"
+          docker tag acit3495-enter-data:latest "$IMAGE_PREFIX/enter-data:latest"
+          docker tag acit3495-analytics-service:latest "$IMAGE_PREFIX/analytics-service:latest"
+          docker tag acit3495-show-results:latest "$IMAGE_PREFIX/show-results:latest"
+
+          docker push "$IMAGE_PREFIX/auth-service:latest"
+          docker push "$IMAGE_PREFIX/enter-data:latest"
+          docker push "$IMAGE_PREFIX/analytics-service:latest"
+          docker push "$IMAGE_PREFIX/show-results:latest"
 
       - name: Clean up CI containers
         if: always()
