@@ -51,6 +51,24 @@ jobs:
         if: always()
         run: docker compose ps
 
+      - name: Scan analytics image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: acit3495-analytics-service:latest
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Scan show results image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: acit3495-show-results:latest
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
       - name: Clean up CI containers
         if: always()
         run: docker compose down -v

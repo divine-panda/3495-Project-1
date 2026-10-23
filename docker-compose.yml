@@ -37,6 +37,7 @@ services:
 
   auth_service:
     build: ./auth_service
+    image: acit3495-auth-service:latest
     container_name: auth_service
     restart: always
     ports:
@@ -59,6 +60,7 @@ services:
     
   enter_data:
     build: ./enter_data
+    image: acit3495-enter-data:latest
     container_name: enter_data
     restart: always
     ports:
@@ -84,6 +86,7 @@ services:
 
   analytics_service:
     build: ./analytics_service
+    image: acit3495-analytics-service:latest
     container_name: analytics_service
     restart: always
     ports:
@@ -109,6 +112,7 @@ services:
 
   show_results:
     build: ./show_results
+    image: acit3495-show-results:latest
     container_name: show_results
     restart: always
     ports:
