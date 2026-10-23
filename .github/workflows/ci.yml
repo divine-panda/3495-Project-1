@@ -30,6 +30,42 @@ jobs:
       - name: Build all service images
         run: docker compose build
 
+      - name: Scan auth service image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: acit3495-auth-service:latest
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Scan enter data image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: acit3495-enter-data:latest
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Scan analytics image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: acit3495-analytics-service:latest
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Scan show results image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: acit3495-show-results:latest
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
       - name: Start services and wait for health checks
         run: docker compose up -d --wait --wait-timeout 180
 
@@ -50,24 +86,6 @@ jobs:
       - name: Show service status
         if: always()
         run: docker compose ps
-
-      - name: Scan analytics image
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: acit3495-analytics-service:latest
-          format: table
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: '0'
-
-      - name: Scan show results image
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: acit3495-show-results:latest
-          format: table
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: '0'
 
       - name: Clean up CI containers
         if: always()
