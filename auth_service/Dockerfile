@@ -19,4 +19,7 @@ EXPOSE 5001
 
 COPY . .
 
+RUN useradd appuser
+USER appuser
+
 CMD ["python", "app.py"]

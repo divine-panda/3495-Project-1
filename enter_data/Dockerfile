@@ -1,4 +1,3 @@
-# enter_data/Dockerfile
 FROM node:20.11.0
 
 EXPOSE 5002
@@ -9,5 +8,8 @@ COPY views /app/views
 RUN npm install
 
 COPY . .
+
+RUN useradd appuser
+USER appuser
 
 CMD ["node", "server.js"]

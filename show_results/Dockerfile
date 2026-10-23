@@ -8,4 +8,7 @@ EXPOSE 5004
 
 COPY . .
 
+RUN useradd appuser
+USER appuser
+
 CMD ["node", "server.js"]
