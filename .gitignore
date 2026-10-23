@@ -3,3 +3,4 @@ analytics_service/venv
 show_results/node_modules
 enter_data/node_modules
 .env
+__pycache__/
