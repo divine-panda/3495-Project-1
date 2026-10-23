@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Configure JWT
-app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "supersecretkey")
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
 app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']  # Accept JWT from both headers and cookies
 app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
